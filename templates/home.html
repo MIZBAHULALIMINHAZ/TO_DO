@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,25 +10,32 @@
     <div class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-xl">
         <h2 class="text-3xl font-bold text-center mb-6 text-blue-400">To-Do List</h2>
         <p class="text-center text-gray-400 mb-4">Today's Date: <span id="currentDate"></span></p>
-        <form class="flex mb-4">
-            <input type="text" placeholder="Add a new task" class="w-full p-3 text-black rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <input type="date" class="p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <form class="flex mb-4" action="{% url 'addTask' %}" method="POST" >
+            {% csrf_token %}
+            <input name ="task" type="text" placeholder="Add a new task" class="w-full p-3 text-black rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input name="taskd" type="date" class="p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
             <button type="submit" class="px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-r-md transition duration-300">Add</button>
         </form>
+        {% for task  in tasks %}
         <ul class="space-y-3 bg-gray-700 p-4 rounded-md shadow-md min-h-[100px]">
             <li class="p-3 bg-gray-600 rounded-md flex justify-between items-center">
-                <span class="flex-1">Example Task (Due: 2025-03-19)</span>
+                <span class="flex-1">{{ task.task}}     <b>[[ {{task.Last_date}} ]]</b></span>
                 <div class="flex space-x-2">
+                    <button class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md transition duration-300">
+                        done Task
+                    </button>
                     <button class="text-yellow-400 hover:text-yellow-600">✎</button>
                     <button class="text-red-400 hover:text-red-600">✖</button>
                 </div>
             </li>
         </ul>
+        {% endfor %}
         <h3 class="text-xl font-bold text-center mt-6 text-green-400">Completed Tasks</h3>
         <ul class="space-y-3 bg-gray-700 p-4 rounded-md shadow-md min-h-[100px]"></ul>
     </div>
     <script>
-        document.getElementById('currentDate').textContent = new Date().toISOString().split('T')[0];
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
     </script>
+    
 </body>
 </html>
