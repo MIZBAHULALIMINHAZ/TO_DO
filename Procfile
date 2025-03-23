@@ -1,1 +1,1 @@
-web: gunicorn "TO DO.wsgi"
+web: gunicorn "TO DO.wsgi:application"
