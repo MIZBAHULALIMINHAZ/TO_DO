@@ -7,35 +7,73 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-xl">
-        <h2 class="text-3xl font-bold text-center mb-6 text-blue-400">To-Do List</h2>
-        <p class="text-center text-gray-400 mb-4">Today's Date: <span id="currentDate"></span></p>
-        <form class="flex mb-4" action="{% url 'addTask' %}" method="POST" >
-            {% csrf_token %}
-            <input name ="task" type="text" placeholder="Add a new task" class="w-full p-3 text-black rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <input name="taskd" type="date" class="p-3 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <button type="submit" class="px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-r-md transition duration-300">Add</button>
-        </form>
-        {% for task  in tasks %}
-        <ul class="space-y-3 bg-gray-700 p-4 rounded-md shadow-md min-h-[100px]">
-            <li class="p-3 bg-gray-600 rounded-md flex justify-between items-center">
-                <span class="flex-1">{{ task.task}}     <b>[[ {{task.Last_date}} ]]</b></span>
-                <div class="flex space-x-2">
-                    <button class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md transition duration-300">
-                        done Task
-                    </button>
-                    <button class="text-yellow-400 hover:text-yellow-600">✎</button>
-                    <button class="text-red-400 hover:text-red-600">✖</button>
-                </div>
-            </li>
-        </ul>
-        {% endfor %}
-        <h3 class="text-xl font-bold text-center mt-6 text-green-400">Completed Tasks</h3>
-        <ul class="space-y-3 bg-gray-700 p-4 rounded-md shadow-md min-h-[100px]"></ul>
+    <div class="w-full max-w-4xl p-6 bg-gray-800 rounded-lg shadow-xl flex space-x-6">
+        <!-- Pending Tasks Section -->
+        <div class="w-1/2">
+            <h2 class="text-3xl font-bold text-center mb-6 text-blue-400">To-Do List</h2>
+            <p class="text-center text-gray-400 mb-4">Today's Date: <span id="currentDate"></span></p>
+            <form class="flex mb-4 space-x-2" action="{% url 'addTask' %}" method="POST">
+                {% csrf_token %}
+                <input name="task" type="text" placeholder="Add a new task" 
+                    class="w-full p-3 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <input name="taskd" type="date" class="p-3 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <button type="submit" class="px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition duration-300">Add</button>
+            </form>
+            
+            {% for task in tasks %}
+            <ul class="space-y-3 bg-gray-700 p-4 rounded-lg shadow-md">
+                <li class="p-3 bg-gray-600 rounded-lg flex justify-between items-center">
+                    <div class="flex-1">
+                        <span class="block font-semibold">{{ task.task }}</span>
+                        <span class="text-gray-400">Due: <b>{{ task.Last_date }}</b></span>
+                        <span class="text-red-400 block">Days Remaining: <b id="daysRemaining{{ task.id }}"></b></span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{% url 'mark_as_done' task.id %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg">Done</a>
+                        <a href="{% url 'edit_task' task.id %}" class="text-yellow-400 hover:text-yellow-600 text-lg">✎</a>
+                        <a href="{% url 'delete_task' task.id %}" class="text-red-400 hover:text-red-600 text-lg">✖</a>
+                    </div>
+                </li>
+            </ul>
+            {% endfor %}
+        </div>
+
+        <!-- Completed Tasks Section -->
+        <div class="w-full md:w-1/2">
+            <h3 class="text-xl font-bold text-center mb-4 text-green-400">Completed Tasks</h3>
+            {% for task in completed_tasks %}
+            <ul class="space-y-3">
+                <li class="p-4 bg-gray-600 rounded-lg flex justify-between items-center shadow-md hover:bg-gray-700 transition duration-300">
+                    <div class="flex-1">
+                        <span class="line-through text-gray-400">{{ task.task }}</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <!-- Undo Button -->
+                        <a href="{% url 'mark_as_undone' task.id %}" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition duration-300">Undo</a>
+                        <!-- Delete Button -->
+                        <a href="{% url 'delete_task' task.id %}" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition duration-300">✖</a>
+                    </div>
+                </li>
+            </ul>
+            {% endfor %}
+        </div>
+        
     </div>
-    <script>
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
-    </script>
     
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-CA');
+        
+        function calculateDaysRemaining(taskId, lastDate) {
+            const today = new Date();
+            const dueDate = new Date(lastDate);
+            const timeDiff = dueDate - today;
+            const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            document.getElementById(`daysRemaining${taskId}`).textContent = daysRemaining > 0 ? daysRemaining + ' days' : 'Overdue';
+        }
+        
+        {% for task in tasks %}
+        calculateDaysRemaining("{{ task.id }}", "{{ task.Last_date|date:'Y-m-d' }}");
+        {% endfor %}
+    </script>
 </body>
 </html>
